@@ -48,7 +48,26 @@ def ICA(raw):
         random_state=random_state,
     )
     ica.fit(epochs_ica[~reject_log.bad_epochs], decim=3)
+    # ica.fit(epochs_ica, decim=3)
     ica.plot_components()
+    plt.show()
+
+
+def csd_fourier(raw):
+    low_cut = 1
+    hi_cut = 30
+
+    raw_filt = raw.copy().filter(low_cut, hi_cut)
+
+    events, event_id = mne.events_from_annotations(raw_filt)
+    tmin = -0.2
+    tmax = 0.5
+    epochs = mne.Epochs(
+        raw_filt, events, event_id, tmin, tmax, baseline=(None, 0), preload=True
+    )
+
+    csd_fourier_epochs = mne.time_frequency.csd_fourier(epochs)
+    csd_fourier_epochs.plot()
     plt.show()
 
 
@@ -92,7 +111,8 @@ try:
         # average=True, amplitude=False, picks="data", exclude="bads"
     )
     plt.show()
-    ICA(raw)
+    # ICA(raw)
+    csd_fourier(raw)
     exit()
 
     low_cut = 0.1
