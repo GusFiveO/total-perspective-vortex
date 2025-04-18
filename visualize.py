@@ -54,10 +54,11 @@ def ICA(raw):
 
 
 def csd_fourier(raw):
-    low_cut = 1
-    hi_cut = 30
+    # low_cut = 1
+    # hi_cut = 30
 
-    raw_filt = raw.copy().filter(low_cut, hi_cut)
+    # raw_filt = raw.copy().filter(low_cut, hi_cut)
+    raw_filt = raw.copy()
 
     events, event_id = mne.events_from_annotations(raw_filt)
     tmin = -0.2
@@ -112,8 +113,9 @@ try:
     )
     plt.show()
     # ICA(raw)
-    csd_fourier(raw)
-    exit()
+    # csd_fourier(raw)
+    # plt.show()
+    # exit()
 
     low_cut = 0.1
     hi_cut = 30
@@ -130,13 +132,13 @@ try:
         raw_filt, events, event_id, tmin, tmax, baseline=(None, 0), preload=True
     )
 
-    T0_epochs = epochs["T0"]
-    # T0_epochs.plot(events=True, scalings="auto")
-    T0_evoked = T0_epochs.average()
-    # T0_evoked.plot_image()
-    # T0_evoked.plot()
+    # T0_epochs = epochs["T0"]
+    # # T0_epochs.plot(events=True, scalings="auto")
+    # T0_evoked = T0_epochs.average()
+    # # T0_evoked.plot_image()
+    # # T0_evoked.plot()
 
-    print(f"epochs {epochs['T0']}")
+    # print(f"epochs {epochs['T0']}")
     plt.show()
 except Exception as e:
     print(e)
