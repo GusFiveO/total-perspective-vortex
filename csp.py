@@ -30,8 +30,10 @@ def print_raw_channel(raw):
         print(ch)
 
 
-def compute_cov(raw):
-    cov = np.cov(raw._data, rowvar=False)
+# def compute_cov(raw):
+def compute_cov(data):
+    # cov = np.cov(raw._data, rowvar=False)
+    cov = np.cov(data, rowvar=False)
     return cov
 
 
@@ -53,13 +55,13 @@ if __name__ == "__main__":
     print(f"Sampling frequency: {raw.info['sfreq']} Hz")
     print(f"EEG data shape: {raw._data.shape}")
     print_raw_channel(raw)
-    cov = compute_cov(raw)
-    print(f"Covariance matrix shape: {cov.shape}")
-    print(f"Covariance matrix:\n{cov}")
     print(raw.info)
     scaled_data = scaler(raw)
     print(f"Scaled data shape: {scaled_data.shape}")
     print(scaled_data.shape)
+    cov = compute_cov(scaled_data)
+    print(f"Covariance matrix shape: {cov.shape}")
+    print(f"Covariance matrix:\n{cov}")
     plt.plot(scaled_data[0, :])
     # raw.plot()
     plt.show()
