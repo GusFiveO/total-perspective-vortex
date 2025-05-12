@@ -31,7 +31,12 @@ def plot_all_signals(signals, channel_names, title, output_path):
     plt.close()
 
 
-def main():
+def filter_signal(raw, low_cut=0.1, hi_cut=30):
+    raw_filt = raw.copy().filter(low_cut, hi_cut)
+    return raw_filt
+
+
+def parse_args():
     parser = argparse.ArgumentParser(description="EEG Wavelet Denoising (All Channels)")
     parser.add_argument("edf_file", type=str, help="Path to the .edf file")
     parser.add_argument(
@@ -49,20 +54,29 @@ def main():
         default="output",
         help="Directory to save plots (default: ./output)",
     )
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
 
     os.makedirs(args.output_dir, exist_ok=True)
 
     # Load EDF file using MNE
     raw = mne.io.read_raw_edf(args.edf_file, preload=True, verbose=False)
+    print(raw.info)
     eeg_data, times = raw.get_data(return_times=True)
+
+    raw_filt = filter_signal(raw)
+    eeg_data_filt, times = raw_filt.get_data(return_times=True)
     ch_names = raw.ch_names
 
     print("Applying wavelet denoising to all channels...")
 
     denoised_signals = []
     for i in range(len(ch_names)):
-        signal = eeg_data[i]
+        # signal = eeg_data[i]
+        signal = eeg_data_filt[i]
         denoised = wavelet_denoise(signal, wavelet_name=args.wavelet, level=args.level)
         denoised_signals.append(denoised)
 
