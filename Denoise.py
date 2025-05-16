@@ -13,7 +13,10 @@ class BandpassFilter(BaseEstimator, TransformerMixin):
 
     def transform(self, X):
         return X.filter(
-            l_freq=self.l_freq, h_freq=self.h_freq, fir_design="firwin"
+            l_freq=self.l_freq,
+            h_freq=self.h_freq,
+            fir_design="firwin",
+            verbose=False,
         )
 
 
