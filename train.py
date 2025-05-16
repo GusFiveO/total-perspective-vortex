@@ -3,6 +3,10 @@ import os
 from matplotlib import pyplot as plt
 import numpy as np
 import mne
+from sklearn.metrics import accuracy_score
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.multiclass import OneVsRestClassifier
 from sklearn.pipeline import make_pipeline
 from Denoise import BandpassFilter, WaveletDenoiser
 from denoise_utils import denoise_signal, filter_bandpass
@@ -62,9 +66,26 @@ def split_epochs(signal, tmin, tmax):
     return epochs
 
 
-def training(epochs):
-    print(epochs.event_id)
-    print(epochs.get_data())
+def training(epochs, test_size=0.2, random_state=42):
+    X = epochs.get_data()
+    y = epochs.events[:, 2]
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=test_size, stratify=y, random_state=random_state
+    )
+    print(f"Train events shape {y_train.shape}")
+    print(f"Train data shape {X_train.shape}")
+    print(f"Test events shape {y_test.shape}")
+    print(f"Test data shape {X_test.shape}")
+
+    pipeline = OneVsRestClassifier(
+        make_pipeline(CustomCSP(n_components=4), LogisticRegression())
+    )
+
+    pipeline.fit(X_train, y_train)
+    y_pred = pipeline.predict(X_test)
+    score = accuracy_score(y_test, y_pred)
+    print(f"score: {score}")
 
 
 if __name__ == "__main__":
