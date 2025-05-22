@@ -8,7 +8,10 @@ from mybci.preprocessing import (
     split_epochs,
 )
 
-from mybci.io import load_dataset, load_experiments
+from mybci.io import (
+    load_experiment,
+    EXPERIMENTS,
+)
 
 
 def parse_args():
@@ -20,7 +23,7 @@ def parse_args():
         nargs="+",
         type=int,
         # default=[1],
-        # default=range(1, 109),
+        default=range(1, 109),
         help="Subject IDs",
     )
     parser.add_argument(
@@ -52,29 +55,36 @@ def parse_args():
 
 def mybci():
     args = parse_args()
-    subjects_raw_signals = load_experiments(
-        subjects=args.subjects, runs=args.runs
-    )
-    print(subjects_raw_signals)
-    # subjects_raw_signals = load_dataset(args.subjects, args.runs)
-    # # raw = mne.io.read_raw_edf(args.edf_file, preload=True, verbose=True)
-    # scores = np.array([])
-    # for subject, raw_signal in subjects_raw_signals.items():
-    #     print(subject)
-    #     preprocessed_signal = preprocessing(
-    #         raw_signal, args.wavelet, args.level
-    #     )
-    #     # print(preprocessed_signal.info)
+    experiments_scores = dict()
+    for exp_name, exp in EXPERIMENTS.items():
 
-    #     epochs = split_epochs(preprocessed_signal, args.tmin, args.tmax)
-    #     # print(epochs.info)
+        if args.runs and not any(run in exp["runs"] for run in args.runs):
+            continue
 
-    #     # training(epochs)
-    #     score = cross_val_training(epochs, cv=10)
-    #     scores = np.append(scores, score)
+        selected_runs = [
+            run for run in exp["runs"] if (not args.runs or run in args.runs)
+        ]
 
-    # print(scores)
-    # print(scores.mean())
+        experiment_scores = np.array([])
+        raw_experiments = load_experiment(
+            args.subjects, exp_name, selected_runs, exp["events"]
+        )
+        for subject, raw_signal in raw_experiments.items():
+            preprocessed_signal = preprocessing(
+                raw_signal, args.wavelet, args.level
+            )
+
+            epochs = split_epochs(preprocessed_signal, args.tmin, args.tmax)
+
+            subject_score = cross_val_training(epochs, cv=10)
+            print(
+                f"Experiment: {exp_name}; Subject: {subject}; Score: {subject_score:.2f}"
+            )
+            experiment_scores = np.append(experiment_scores, subject_score)
+        experiments_scores[exp_name] = experiment_scores.mean()
+    for exp_name, score in experiments_scores.items():
+        print(f"{exp_name}: {score:.2f}")
+    print("Average score: ", np.mean(list(experiments_scores.values())))
 
 
 if __name__ == "__main__":
