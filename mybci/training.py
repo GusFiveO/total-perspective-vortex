@@ -17,6 +17,7 @@ from mybci.custom_transformer.Csp import CustomCSP
 from mne.decoding import CSP
 
 
+
 def cross_val_training(epochs, cv=5):
     X = epochs.get_data()
     y = epochs.events[:, 2] - 2

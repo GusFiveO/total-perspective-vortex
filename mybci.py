@@ -8,7 +8,7 @@ from mybci.preprocessing import (
     split_epochs,
 )
 
-from mybci.io import load_dataset
+from mybci.io import load_dataset, load_experiments
 
 
 def parse_args():
@@ -19,7 +19,8 @@ def parse_args():
         "--subjects",
         nargs="+",
         type=int,
-        default=range(1, 109),
+        # default=[1],
+        # default=range(1, 109),
         help="Subject IDs",
     )
     parser.add_argument(
@@ -28,7 +29,7 @@ def parse_args():
         nargs="+",
         type=int,
         # default=[3, 7, 11],
-        default=range(1, 14),
+        # default=range(1, 14),
         help="Target Run IDs",
     )
     parser.add_argument(
@@ -51,25 +52,29 @@ def parse_args():
 
 def mybci():
     args = parse_args()
-    subjects_raw_signals = load_dataset(args.subjects, args.runs)
-    # raw = mne.io.read_raw_edf(args.edf_file, preload=True, verbose=True)
-    scores = np.array([])
-    for subject, raw_signal in subjects_raw_signals.items():
-        print(subject)
-        preprocessed_signal = preprocessing(
-            raw_signal, args.wavelet, args.level
-        )
-        # print(preprocessed_signal.info)
+    subjects_raw_signals = load_experiments(
+        subjects=args.subjects, runs=args.runs
+    )
+    print(subjects_raw_signals)
+    # subjects_raw_signals = load_dataset(args.subjects, args.runs)
+    # # raw = mne.io.read_raw_edf(args.edf_file, preload=True, verbose=True)
+    # scores = np.array([])
+    # for subject, raw_signal in subjects_raw_signals.items():
+    #     print(subject)
+    #     preprocessed_signal = preprocessing(
+    #         raw_signal, args.wavelet, args.level
+    #     )
+    #     # print(preprocessed_signal.info)
 
-        epochs = split_epochs(preprocessed_signal, args.tmin, args.tmax)
-        # print(epochs.info)
+    #     epochs = split_epochs(preprocessed_signal, args.tmin, args.tmax)
+    #     # print(epochs.info)
 
-        # training(epochs)
-        score = cross_val_training(epochs, cv=10)
-        scores = np.append(scores, score)
+    #     # training(epochs)
+    #     score = cross_val_training(epochs, cv=10)
+    #     scores = np.append(scores, score)
 
-    print(scores)
-    print(scores.mean())
+    # print(scores)
+    # print(scores.mean())
 
 
 if __name__ == "__main__":
