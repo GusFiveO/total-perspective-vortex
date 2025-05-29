@@ -14,7 +14,7 @@ def preprocessing(raw_signal, wavelet, level):
     return preprocessed_signal
 
 
-def split_epochs(signal, tmin, tmax):
+def raw_to_epochs(signal, tmin, tmax):
     events, event_id = mne.events_from_annotations(signal, verbose=False)
 
     epochs = mne.Epochs(
