@@ -10,11 +10,11 @@ from mybci.custom_transformer.Csp import CustomCSP
 
 from mne.decoding import CSP
 
-from mybci.io import EXPERIMENTS, load_experiment, load_runs, load_task
+from mybci.io import TASKS, load_task, save_model, load_model
 from mybci.preprocessing import preprocessing, raw_to_epochs
 
 
-def cross_val_training(epochs, cv=5):
+def cross_val_training(epochs, subject, task, cv=5):
     X = epochs.get_data()
     y = epochs.events[:, 2] - 2
 
@@ -31,6 +31,7 @@ def cross_val_training(epochs, cv=5):
 
     accuracy = pipeline.score(X_test, y_test)
     print(f"accuracy: {accuracy:.2f}")
+    save_model(pipeline, subject, task, "models")
 
     return scores
 
@@ -50,77 +51,32 @@ def training_accuracy(epochs):
 
 def train_all(subjects, tmin, tmax, wavelet="db4", level=4):
     tasks_scores = dict()
-    for task_id, task in enumerate(EXPERIMENTS):
+    for task_id, task in enumerate(TASKS):
         task_scores = np.array([])
-        raw_tasks = load_experiment(subjects, task_id)
-        for subject, raw_signal in raw_tasks.items():
+        for subject in subjects:
+            raw_signal = load_task(subject, task_id)
             preprocessed_signal = preprocessing(raw_signal, wavelet, level)
 
             epochs = raw_to_epochs(preprocessed_signal, tmin, tmax)
 
-            # subject_score = cross_val_training(epochs, cv=10)
             subject_score = training_accuracy(epochs)
-            print(
-                f"Experiment: {task["name"]}; Subject: {subject}; Score: {subject_score:.2f}"
-            )
-            experiment_scores = np.append(experiment_scores, subject_score)
-        tasks_scores[task["name"]] = experiment_scores.mean()
+            print(f"{task["name"]}; Subject: {subject}; Accuracy = {subject_score:.2f}")
+            task_scores = np.append(task_scores, subject_score)
+        tasks_scores[task["name"]] = task_scores.mean()
+    print("\nMean accuracy per task on all subjects:")
     for exp_name, score in tasks_scores.items():
         print(f"{exp_name}: {score:.2f}")
-    print("Average score: ", np.mean(list(tasks_scores.values())))
+    print("\nMean accuracy on all tasks:", np.mean(list(tasks_scores.values())))
 
 
-# def train_all(subjects, runs, tmin, tmax, wavelet="db4", level=4):
-#     experiments_scores = dict()
-#     for exp_name, exp in EXPERIMENTS.items():
+def train_one(subject, task, tmin, tmax, wavelet="db4", level=4):
+    # for subject in subjects:
+    raw_runs = load_task(subject, task)
+    preprocessed_signal = preprocessing(raw_runs, wavelet, level)
 
-#         if runs and not any(run in exp["runs"] for run in runs):
-#             continue
+    epochs = raw_to_epochs(preprocessed_signal, tmin, tmax)
 
-#         selected_runs = [run for run in exp["runs"] if (not runs or run in runs)]
+    subject_scores = cross_val_training(epochs, subject, task)
 
-#         experiment_scores = np.array([])
-#         raw_experiments = load_experiment(
-#             subjects, exp_name, selected_runs, exp["events"]
-#         )
-#         for subject, raw_signal in raw_experiments.items():
-#             preprocessed_signal = preprocessing(raw_signal, wavelet, level)
-
-#             epochs = raw_to_epochs(preprocessed_signal, tmin, tmax)
-
-#             # subject_score = cross_val_training(epochs, cv=10)
-#             subject_score = training_accuracy(epochs)
-#             print(
-#                 f"Experiment: {exp_name}; Subject: {subject}; Score: {subject_score:.2f}"
-#             )
-#             experiment_scores = np.append(experiment_scores, subject_score)
-#         experiments_scores[exp_name] = experiment_scores.mean()
-#     for exp_name, score in experiments_scores.items():
-#         print(f"{exp_name}: {score:.2f}")
-#     print("Average score: ", np.mean(list(experiments_scores.values())))
-
-
-def train_one(subjects, task, tmin, tmax, wavelet="db4", level=4):
-    for subject in subjects:
-        raw_runs = load_task(subject, task)
-        preprocessed_signal = preprocessing(raw_runs, wavelet, level)
-
-        epochs = raw_to_epochs(preprocessed_signal, tmin, tmax)
-
-        subject_scores = cross_val_training(epochs)
-
-        print(subject_scores)
-        print(f"Subject: {subject}; Score: {subject_scores.mean():.2f}")
-
-
-# def train_one(subjects, runs, tmin, tmax, wavelet="db4", level=4):
-#     for subject in subjects:
-#         raw_runs = load_runs(subject, runs)
-#         preprocessed_signal = preprocessing(raw_runs, wavelet, level)
-
-#         epochs = raw_to_epochs(preprocessed_signal, tmin, tmax)
-
-#         subject_scores = cross_val_training(epochs)
-
-#         print(subject_scores)
-#         print(f"Subject: {subject}; Score: {subject_scores.mean():.2f}")
+    print(subject_scores)
+    print(f"Subject: {subject}; Score: {subject_scores.mean():.2f}")

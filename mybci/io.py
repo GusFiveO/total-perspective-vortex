@@ -1,18 +1,17 @@
 from tqdm import tqdm
+import joblib
 from mne import concatenate_raws
 from mne.datasets import eegbci
 import mne
 
-EXPERIMENTS = [
+TASKS = [
     # "Baseline, eyes open": {"runs": [1], "events": {"T0": "rest"}},
     # "Baseline, eyes closed": {"runs": [2], "events": {"T0": "rest"}},
-    # "Task 1 (real fist movement: left/right)": {
     {
         "name": "Task 1 (real fist movement: left/right)",
         "runs": [3, 7, 11],
         "events": {"T0": "rest", "T1": "left_fist", "T2": "right_fist"},
     },
-    # "Task 2 (imagined fist movement left/right)": {
     {
         "name": "Task 2 (imagined fist movement left/right)",
         "runs": [4, 8, 12],
@@ -22,13 +21,11 @@ EXPERIMENTS = [
             "T2": "right_fist_imagined",
         },
     },
-    # "Task 3 (real movement: fists/feet)": {
     {
         "name": "Task 3 (real movement: fists/feet)",
         "runs": [5, 9, 13],
         "events": {"T0": "rest", "T1": "both_fists", "T2": "both_feet"},
     },
-    # "Task 4 (imagined movement: fists/feet)": {
     {
         "name": "Task 4 (imagined movement: fists/feet)",
         "runs": [6, 10, 14],
@@ -74,7 +71,7 @@ def load_runs(subject, runs, events=None):
     return raw
 
 
-def load_experiment(subjects, task_id):
+def load_tasks(subjects, task_id):
     subjects_raw_signals = dict()
     for subject in tqdm(subjects, desc="Loading subjects"):
         subject_raw_runs = load_task(subject, task_id)
@@ -82,16 +79,21 @@ def load_experiment(subjects, task_id):
     return subjects_raw_signals
 
 
-# def load_experiment(subjects, exp_name, runs, events):
-#     subjects_raw_signals = dict()
-#     for subject in tqdm(subjects, desc="Loading subjects"):
-#         subject_raw_runs = load_runs(subject, runs, events)
-#         subjects_raw_signals[subject] = subject_raw_runs
-#     return subjects_raw_signals
-
-
 def load_task(subject, task_id):
-    runs = EXPERIMENTS[task_id - 1]["runs"]
-    events = EXPERIMENTS[task_id - 1]["events"]
+    runs = TASKS[task_id - 1]["runs"]
+    events = TASKS[task_id - 1]["events"]
     subject_raw_runs = load_runs(subject, runs, events)
     return subject_raw_runs
+
+
+def save_model(model, subject, task_id, path):
+    filename = f"{path}/model_subject_{subject}_task_{task_id}.joblib"
+    joblib.dump(model, filename)
+    print(f"Model saved to {filename}")
+
+
+def load_model(subject, task_id, path):
+    filename = f"{path}/model_subject_{subject}_task_{task_id}.joblib"
+    model = joblib.load(filename)
+    print(f"Model loaded from {filename}")
+    return model
