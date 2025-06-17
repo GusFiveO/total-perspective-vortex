@@ -1,6 +1,7 @@
 import argparse
 import numpy as np
 from mybci.predict import predict
+from mybci.predict_stream import predict_stream
 from mybci.training import (
     train_all,
     train_one,
@@ -48,7 +49,8 @@ def mybci():
     if args.mode == "predict":
         if args.subject is None or args.task is None:
             raise ValueError("Subject and task must be specified for prediction.")
-        predict(
+        # predict(
+        predict_stream(
             subject=args.subject,
             task_id=args.task,
             wavelet=args.wavelet,

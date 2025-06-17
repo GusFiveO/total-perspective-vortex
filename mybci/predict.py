@@ -4,7 +4,11 @@ from mybci.preprocessing import preprocessing, raw_to_epochs
 
 
 def predict(subject, task_id, wavelet="db4", level=4, tmin=0, tmax=2):
-    model = load_model(subject, task_id, "models")
+    try:
+        model = load_model(subject, task_id, "models")
+    except FileNotFoundError:
+        print(f"Model for subject {subject} and task {task_id} not found.")
+        return
     raw_signal = load_task(subject, task_id)
 
     preprocecssed_signal = preprocessing(raw_signal, wavelet, level)
@@ -18,3 +22,5 @@ def predict(subject, task_id, wavelet="db4", level=4, tmin=0, tmax=2):
     print(X_test.shape, y_test.shape)
     pred = model.predict(X_test)
     print(f"Predicted labels: {pred}")
+    model.score(X_test, y_test)
+    print(f"Accuracy: {model.score(X_test, y_test):.2f}")
