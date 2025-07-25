@@ -18,7 +18,10 @@ def predict_stream(subject, task_id, wavelet="db4", level=4, tmin=0, tmax=2):
     epochs = raw_to_epochs(preprocessed, tmin, tmax)
 
     X_train, X_test, y_train, y_test = train_test_split(
-        epochs.get_data(), epochs.events[:, 2] - 2, test_size=0.2, random_state=42
+        epochs.get_data(),
+        epochs.events[:, 2] - 2,
+        test_size=0.2,
+        random_state=42,
     )
 
     correct = 0

@@ -45,7 +45,8 @@ def load_dataset(subjects, runs):
         raw_fnames = eegbci.load_data(
             subject,
             runs,
-            path="/Users/augustinlorain/Documents/42/total-perspective-vortex/eegdata",
+            # path="/Users/augustinlorain/Documents/42/total-perspective-vortex/eegdata",
+            path="~/goinfre/eegdata",
             verbose=False,
         )
         raw = concatenate_raws(
@@ -60,11 +61,15 @@ def load_runs(subject, runs, events=None):
     raw_fnames = eegbci.load_data(
         subject,
         runs,
-        path="/Users/augustinlorain/Documents/42/total-perspective-vortex/eegdata",
+        # path="/Users/augustinlorain/Documents/42/total-perspective-vortex/eegdata",
+        path="~/goinfre/eegdata",
         verbose=False,
     )
     raw = concatenate_raws(
-        [mne.io.read_raw_edf(f, preload=True, verbose=False) for f in raw_fnames]
+        [
+            mne.io.read_raw_edf(f, preload=True, verbose=False)
+            for f in raw_fnames
+        ]
     )
     if events is not None:
         raw.annotations.rename(events, verbose=False)

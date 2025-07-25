@@ -1,6 +1,4 @@
 import argparse
-import numpy as np
-from mybci.predict import predict
 from mybci.predict_stream import predict_stream
 from mybci.training import (
     train_all,

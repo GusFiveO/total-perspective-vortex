@@ -1,5 +1,5 @@
 from sklearn.model_selection import train_test_split
-from mybci.io import load_model, TASKS, load_task
+from mybci.io import load_model, load_task
 from mybci.preprocessing import preprocessing, raw_to_epochs
 
 

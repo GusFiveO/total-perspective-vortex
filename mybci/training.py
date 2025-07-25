@@ -1,16 +1,11 @@
 import numpy as np
-import joblib
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.pipeline import make_pipeline
 from sklearn.model_selection import cross_val_score, train_test_split
 
 from mybci.custom_transformer.Csp import CustomCSP
 
-from mne.decoding import CSP
-
-from mybci.io import TASKS, load_task, save_model, load_model
+from mybci.io import TASKS, load_task, save_model
 from mybci.preprocessing import preprocessing, raw_to_epochs
 
 
@@ -19,7 +14,10 @@ def cross_val_training(epochs, subject, task, cv=5):
     y = epochs.events[:, 2] - 2
 
     X_train, X_test, y_train, y_test = train_test_split(
-        epochs.get_data(), epochs.events[:, 2] - 2, test_size=0.2, random_state=42
+        epochs.get_data(),
+        epochs.events[:, 2] - 2,
+        test_size=0.2,
+        random_state=42,
     )
 
     # pipeline = make_pipeline(CSP(n_components=4), RandomForestClassifier())
@@ -39,7 +37,10 @@ def cross_val_training(epochs, subject, task, cv=5):
 def training_accuracy(epochs):
     """Train a classifier and return the accuracy."""
     X_train, X_test, y_train, y_test = train_test_split(
-        epochs.get_data(), epochs.events[:, 2] - 2, test_size=0.2, random_state=42
+        epochs.get_data(),
+        epochs.events[:, 2] - 2,
+        test_size=0.2,
+        random_state=42,
     )
 
     # pipeline = make_pipeline(CSP(n_components=4), RandomForestClassifier())
@@ -60,13 +61,17 @@ def train_all(subjects, tmin, tmax, wavelet="db4", level=4):
             epochs = raw_to_epochs(preprocessed_signal, tmin, tmax)
 
             subject_score = training_accuracy(epochs)
-            print(f"{task["name"]}; Subject: {subject}; Accuracy = {subject_score:.2f}")
+            print(
+                f"{task['name']}; Subject: {subject}; Accuracy = {subject_score:.2f}"
+            )
             task_scores = np.append(task_scores, subject_score)
         tasks_scores[task["name"]] = task_scores.mean()
     print("\nMean accuracy per task on all subjects:")
     for exp_name, score in tasks_scores.items():
         print(f"{exp_name}: {score:.2f}")
-    print("\nMean accuracy on all tasks:", np.mean(list(tasks_scores.values())))
+    print(
+        "\nMean accuracy on all tasks:", np.mean(list(tasks_scores.values()))
+    )
 
 
 def train_one(subject, task, tmin, tmax, wavelet="db4", level=4):
